@@ -1,0 +1,2 @@
+haskinator:
+	ghc --make Haskinator
