@@ -1,16 +1,15 @@
-import System.IO
-import System.Exit
+import System.IO ()
+import System.Exit ( exitSuccess )
 import System.Directory (doesFileExist)
-import Oraculo
+import Oraculo ( Oraculo, crearOraculo )
 
 exit :: IO Oraculo
-exit = do {putStrLn "Gracias por usar Haskinator. Nos vemos pronto!"; return ()}
+exit = do {putStrLn "Gracias por usar Haskinator. Nos vemos pronto!"; exitSuccess }
 
 createOracle :: IO Oraculo
 createOracle = do
         putStrLn "Inserta una predicción"
-        prediction <- getLine
-        crearOraculo prediction
+        crearOraculo <$> getLine
 
 main :: IO ()
 main = do
@@ -27,10 +26,10 @@ menu (Just oracle) = do
         new_oracle <- case validate choice of
             Just 1 -> createOracle
             Just 2 -> foo
-            Just 3 -> persistOracle oracle
-            Just 4 -> chargeOracle
+            Just 3 -> foo -- persistOracle oracle
+            Just 4 -> foo --chargeOracle
             Just 5 -> foo
-            Just 6 -> do {putStrLn "Gracias por usar Haskinator. Nos vemos pronto!"; exitSuccess}
+            Just 6 -> exit
             Nothing -> do {putStrLn "Opción inválida"; return oracle}
         if choice /= "6"
             then do
@@ -38,7 +37,7 @@ menu (Just oracle) = do
                 menu (Just new_oracle)
             else
                 putStrLn ""
-   where concatNums (i, (s)) = show i ++ ": " ++ s
+   where concatNums (i, s) = show i ++ ": " ++ s
 menu Nothing = do
         putStrLn . unlines $ map concatNums choices
         choice <- getLine
@@ -49,28 +48,28 @@ menu Nothing = do
             Just 4  -> do
                 new_instance <- foo
                 menu (Just new_instance)
-            Just 6  -> do {putStrLn "Gracias por usar Haskinator. Nos vemos pronto!"; exitSuccess}
+            Just 6  -> exitSuccess
             Nothing -> do {putStrLn "Opción inválida"; menu Nothing}
             _ -> do {putStrLn "No hay oráculo cargado"; menu Nothing}
-   where concatNums (i, (s)) = show i ++ ": " ++ s
+   where concatNums (i, s) = show i ++ ": " ++ s
 
 
 validate :: String -> Maybe Int
 validate s = isValid (reads s)
    where isValid []            = Nothing
-         isValid ((n, _):_) 
+         isValid ((n, _):_)
                | outOfBounds n = Nothing
                | otherwise     = Just n
-         outOfBounds n = (n < 1) || (n > length choices)
+         outOfBounds n = n < 1 || n > length choices
 
-choices :: [(Int, (String))]
+choices :: [(Int, String)]
 choices = zip [1.. ] [
-    ("Crear un oráculo nuevo")
-    , ("Predecir")
-    , ("Persistir")
-    , ("Cargar")
-    , ("Consultar pregunta crucial")
-    , ("Salir")
+    "Crear un oráculo nuevo"
+    , "Predecir"
+    , "Persistir"
+    , "Cargar"
+    , "Consultar pregunta crucial"
+    , "Salir"
     ]
 
 -- execute :: Int -> IO ()
