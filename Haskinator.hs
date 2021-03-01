@@ -1,8 +1,9 @@
 import System.IO
+import System.Exit
 import System.Directory (doesFileExist)
 import Oraculo
 
-exit :: IO()
+exit :: IO Oraculo
 exit = do {putStrLn "Gracias por usar Haskinator. Nos vemos pronto!"; return ()}
 
 createOracle :: IO Oraculo
@@ -29,7 +30,7 @@ menu (Just oracle) = do
             Just 3 -> persistOracle oracle
             Just 4 -> chargeOracle
             Just 5 -> foo
-            Just 6 -> exit
+            Just 6 -> do {putStrLn "Gracias por usar Haskinator. Nos vemos pronto!"; exitSuccess}
             Nothing -> do {putStrLn "Opción inválida"; return oracle}
         if choice /= "6"
             then do
@@ -37,7 +38,7 @@ menu (Just oracle) = do
                 menu (Just new_oracle)
             else
                 putStrLn ""
-   where concatNums (i, (s, _)) = show i ++ ": " ++ s
+   where concatNums (i, (s)) = show i ++ ": " ++ s
 menu Nothing = do
         putStrLn . unlines $ map concatNums choices
         choice <- getLine
@@ -48,10 +49,10 @@ menu Nothing = do
             Just 4  -> do
                 new_instance <- foo
                 menu (Just new_instance)
-            Just 6  -> exit
+            Just 6  -> do {putStrLn "Gracias por usar Haskinator. Nos vemos pronto!"; exitSuccess}
             Nothing -> do {putStrLn "Opción inválida"; menu Nothing}
             _ -> do {putStrLn "No hay oráculo cargado"; menu Nothing}
-   where concatNums (i, (s, _)) = show i ++ ": " ++ s
+   where concatNums (i, (s)) = show i ++ ": " ++ s
 
 
 validate :: String -> Maybe Int
