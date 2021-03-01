@@ -6,6 +6,9 @@ import Oraculo ( Oraculo, crearOraculo )
 exit :: IO Oraculo
 exit = do {putStrLn "Gracias por usar Haskinator. Nos vemos pronto!"; exitSuccess }
 
+exitINIT :: IO()
+exitINIT = do {putStrLn "Gracias por usar Haskinator. Nos vemos pronto!"; exitSuccess }
+
 createOracle :: IO Oraculo
 createOracle = do
         putStrLn "Inserta una predicción"
@@ -48,7 +51,7 @@ menu Nothing = do
             Just 4  -> do
                 new_instance <- foo
                 menu (Just new_instance)
-            Just 6  -> exitSuccess
+            Just 6  -> exitINIT
             Nothing -> do {putStrLn "Opción inválida"; menu Nothing}
             _ -> do {putStrLn "No hay oráculo cargado"; menu Nothing}
    where concatNums (i, s) = show i ++ ": " ++ s
