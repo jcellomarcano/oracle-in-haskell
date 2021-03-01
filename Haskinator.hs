@@ -1,46 +1,58 @@
-import System.IO 
-
-crearOraculo :: String -> String
-crearOraculo x = x
+import System.IO
+import System.Directory (doesFileExist)
+import Oraculo
 
 exit :: IO()
 exit = do {putStrLn "Gracias por usar Haskinator. Nos vemos pronto!"; return ()}
 
-createOracle :: IO()
+createOracle :: IO Oraculo
 createOracle = do
         putStrLn "Inserta una predicción"
         prediction <- getLine
-        putStrLn (crearOraculo prediction)
-
-chargeOracle :: IO()
-chargeOracle = do
-        handle <- openFile "example.txt" ReadMode  
-        contents <- hGetContents handle  
-        putStr contents  
-        hClose handle 
+        crearOraculo prediction
 
 main :: IO ()
-main = do  
+main = do
         putStrLn "***********************"
         putStrLn "Bienvenido a Haskinator"
         putStrLn "Selecciona la opción a realizar:"
-        menu
+        menu Nothing
 
 
-menu :: IO ()
-menu = do
+menu :: Maybe Oraculo -> IO ()
+menu (Just oracle) = do
         putStrLn . unlines $ map concatNums choices
         choice <- getLine
-        case validate choice of
-            Just n  -> execute . read $ choice
-            Nothing -> putStrLn "Intenta de nuevo"
+        new_oracle <- case validate choice of
+            Just 1 -> createOracle
+            Just 2 -> foo
+            Just 3 -> persistOracle oracle
+            Just 4 -> chargeOracle
+            Just 5 -> foo
+            Just 6 -> exit
+            Nothing -> do {putStrLn "Opción inválida"; return oracle}
         if choice /= "6"
             then do
                 putStrLn ""
-                menu
+                menu (Just new_oracle)
             else
                 putStrLn ""
    where concatNums (i, (s, _)) = show i ++ ": " ++ s
+menu Nothing = do
+        putStrLn . unlines $ map concatNums choices
+        choice <- getLine
+        case validate choice of
+            Just 1  -> do
+                new_instance <- createOracle
+                menu (Just new_instance)
+            Just 4  -> do
+                new_instance <- foo
+                menu (Just new_instance)
+            Just 6  -> exit
+            Nothing -> do {putStrLn "Opción inválida"; menu Nothing}
+            _ -> do {putStrLn "No hay oráculo cargado"; menu Nothing}
+   where concatNums (i, (s, _)) = show i ++ ": " ++ s
+
 
 validate :: String -> Maybe Int
 validate s = isValid (reads s)
@@ -50,19 +62,49 @@ validate s = isValid (reads s)
                | otherwise     = Just n
          outOfBounds n = (n < 1) || (n > length choices)
 
-choices :: [(Int, (String, IO ()))]
+choices :: [(Int, (String))]
 choices = zip [1.. ] [
-    ("Crear un oráculo nuevo", createOracle)
-    , ("Predecir", foo)
-    , ("Persistir", foo)
-    , ("Cargar", chargeOracle)
-    , ("Consultar pregunta crucial", foo)
-    , ("Salir", exit)
+    ("Crear un oráculo nuevo")
+    , ("Predecir")
+    , ("Persistir")
+    , ("Cargar")
+    , ("Consultar pregunta crucial")
+    , ("Salir")
     ]
 
-execute :: Int -> IO ()
-execute n = doExec $ filter (\(i, _) -> i == n) choices
-   where doExec ((_, (_,f)):_) = f
+-- execute :: Int -> IO ()
+-- execute n = doExec $ filter (\(i, _) -> i == n) choices
+--    where doExec ((_, (_,f)):_) = f
+
+persistOracle :: Oraculo -> IO()
+persistOracle oracle = do
+                        putStrLn "Coloca el nombre de archivo en donde se guardará el oráculo: "
+                        filename <- getLine
+                        writeFile filename (show oracle)
+                        return ()
+
+readMaybe :: (Read a) => String -> Maybe a
+readMaybe s = case reads s of
+                [(x, "")] -> Just x
+                _         -> Nothing
+
+{- chargeOracle :: IO ()
+chargeOracle = do
+                putStrLn "Coloca el nombre del archivo en donde se encuentra el oráculo: "
+                filename <- getLine
+                existe <- doesFileExist filename
+                if existe
+                    then do 
+                        oraculo <- readFile filename
+                        let resp = readMaybe oraculo
+                        if resp == Nothing
+                            then do
+                                putStrLn "El contenido del archivo no contiene un oraculo valido."
+                                return Nothing
+                            else return resp
+                else do
+                    putStrLn "El archivo no existe."
+                    return Nothing -}
 
 foo = undefined
 bar = undefined
