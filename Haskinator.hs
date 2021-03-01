@@ -1,7 +1,11 @@
 import System.IO ()
 import System.Exit ( exitSuccess )
 import System.Directory (doesFileExist)
-import Oraculo ( Oraculo, crearOraculo )
+import Prelude
+import Data.Map as Map
+import Oraculo
+import UserInterface
+import Predictions
 
 exit :: IO Oraculo
 exit = do {putStrLn "Gracias por usar Haskinator. Nos vemos pronto!"; exitSuccess }
@@ -24,14 +28,14 @@ main = do
 
 menu :: Maybe Oraculo -> IO ()
 menu (Just oracle) = do
-        putStrLn . unlines $ map concatNums choices
+        putStrLn . unlines $ Prelude.map concatNums choices
         choice <- getLine
         new_oracle <- case validate choice of
             Just 1 -> createOracle
-            Just 2 -> foo
-            Just 3 -> foo -- persistOracle oracle
-            Just 4 -> foo --chargeOracle
-            Just 5 -> foo
+            Just 2 -> doPrediction oracle
+            Just 3 -> persistOracle oracle
+            Just 4 -> chargeOracle
+            Just 5 -> crucialQuestion
             Just 6 -> exit
             Nothing -> do {putStrLn "Opción inválida"; return oracle}
         if choice /= "6"
@@ -42,7 +46,7 @@ menu (Just oracle) = do
                 putStrLn ""
    where concatNums (i, s) = show i ++ ": " ++ s
 menu Nothing = do
-        putStrLn . unlines $ map concatNums choices
+        putStrLn . unlines $ Prelude.map concatNums choices
         choice <- getLine
         case validate choice of
             Just 1  -> do
@@ -79,35 +83,54 @@ choices = zip [1.. ] [
 -- execute n = doExec $ filter (\(i, _) -> i == n) choices
 --    where doExec ((_, (_,f)):_) = f
 
-persistOracle :: Oraculo -> IO()
+persistOracle :: Oraculo -> IO Oraculo
 persistOracle oracle = do
                         putStrLn "Coloca el nombre de archivo en donde se guardará el oráculo: "
                         filename <- getLine
                         writeFile filename (show oracle)
-                        return ()
+                        return oracle
 
 readMaybe :: (Read a) => String -> Maybe a
 readMaybe s = case reads s of
                 [(x, "")] -> Just x
                 _         -> Nothing
 
-{- chargeOracle :: IO ()
+cargar :: IO Oraculo
+cargar = do
+        putStrLn "Introduzca el archivo a leer."
+        archivo <- getLine
+        s <- readFile archivo
+        return $ oraculo s
+    where
+        oraculo s = read s :: Oraculo
+
+chargeOracle :: IO Oraculo
 chargeOracle = do
                 putStrLn "Coloca el nombre del archivo en donde se encuentra el oráculo: "
                 filename <- getLine
-                existe <- doesFileExist filename
-                if existe
-                    then do 
-                        oraculo <- readFile filename
-                        let resp = readMaybe oraculo
-                        if resp == Nothing
-                            then do
-                                putStrLn "El contenido del archivo no contiene un oraculo valido."
-                                return Nothing
-                            else return resp
-                else do
-                    putStrLn "El archivo no existe."
-                    return Nothing -}
+                exist <- doesFileExist filename
+                if exist then do
+                        str <- readFile filename
+                        return $ oracle str
+                else
+                    error "El archivo no existe."
+
+                where
+                    oracle str = read str :: Oraculo
+
+--------Module Prediction
+
+
+-- requestQuestion :: Oraculo -> IO Oraculo
+-- requestQuestion = 
+
+
+------------Modulo Interact
+
+crucialQuestion :: IO Oraculo
+crucialQuestion = error  "Función no disponible por los momentos :("
+
+
+
 
 foo = undefined
-bar = undefined
