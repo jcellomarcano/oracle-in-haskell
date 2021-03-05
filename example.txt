@@ -1,8 +1,0 @@
-El actor interpretó un villano?
--Si: Cuál es el nombre del villano?
-    -Joker: De qué película es el Joker?
-        -Suicide Squad: Jared Leto
-        -The Dark Knight: Heath Ledger
-    -Bane: Tom Hardy
-    -Scarecrow: Cillian Murphy
--No: Christian Bale

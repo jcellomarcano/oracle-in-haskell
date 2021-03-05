@@ -53,7 +53,7 @@ menu Nothing = do
                 new_instance <- createOracle
                 menu (Just new_instance)
             Just 4  -> do
-                new_instance <- foo
+                new_instance <- chargeOracle
                 menu (Just new_instance)
             Just 6  -> exitINIT
             Nothing -> do {putStrLn "Opción inválida"; menu Nothing}
