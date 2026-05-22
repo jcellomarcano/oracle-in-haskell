@@ -1,0 +1,33 @@
+name: Haskell CI/CD
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    name: Build and Test (GHC ${{ matrix.ghc }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ghc: ['9.6', '9.8', 'latest']
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Haskell GHC
+      uses: haskell-actions/setup@v2
+      with:
+        ghc-version: ${{ matrix.ghc }}
+
+    - name: Clean build environment
+      run: make clean
+
+    - name: Compile Haskinator
+      run: make haskinator
+
+    - name: Compile and Run Unit Tests
+      run: make test
