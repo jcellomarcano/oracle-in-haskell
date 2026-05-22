@@ -1,0 +1,1 @@
+Question "Has numbers" (fromList [("No",Prediction "hello"),("Yes",Prediction "hello123")])

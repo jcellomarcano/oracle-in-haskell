@@ -1,60 +1,57 @@
 module Predictions where
-import Oraculo
+
+import Oracle
 import Data.Map as Map ( insert )
 import Prelude
 import UserInterface
 
-doPrediction :: Oraculo -> IO Oraculo
-doPrediction (Prediccion pred) = makePrediction (Prediccion pred) -- error de typo 
-doPrediction (Pregunta str opci) = makePregunta (Pregunta str opci)
+-- | Execute prediction navigation starting from the current Oracle node
+doPrediction :: Oracle -> IO Oracle
+doPrediction (Prediction predVal) = makePrediction (Prediction predVal)
+doPrediction (Question qText opts) = processQuestion (Question qText opts)
 
-makePrediction :: Oraculo -> IO Oraculo
+-- | Handles reaching a Prediction node: proposes prediction and handles success/failure
+makePrediction :: Oracle -> IO Oracle
 makePrediction oracle = do
-    putStrLn $ "Prediccion: " ++ prediccion oracle
-    putStrLn "¿Es verdadera? Si/No"
+    putStrLn $ "Prediction: " ++ getPrediction oracle
+    putStrLn "Is it correct? Yes/No"
     x <- getLine
     case x of
-        "Si" -> return oracle
-        "No" -> predicctionFailed oracle
+        "Yes" -> return oracle
+        "No"  -> failedPrediction oracle
+        _     -> do
+            putStrLn "Please answer Yes or No."
+            makePrediction oracle
 
-makePregunta :: Oraculo -> IO Oraculo
-makePregunta oracle = do
-        putStrLn $ pregunta oracle
-        putStrLn $ showOptions lista
-        userOption <- getValidResponse ("ninguna": optionsList (opciones oracle))
-        case userOption of
-            "ninguna" -> do
-                correctPrediction <- requestValidPrediction
-                opcion <- requestRespose lista (pregunta oracle) correctPrediction
-                return (insertPred opcion (crearOraculo correctPrediction) oracle)
-            opcion -> do
-                subOraculo <- doPrediction (respuesta oracle opcion)
-                return (insertPred opcion subOraculo oracle)
-    where
-        lista = optionsList $ opciones oracle
+-- | Handles reaching a Question node: asks the question and handles path navigation
+processQuestion :: Oracle -> IO Oracle
+processQuestion oracle = do
+    putStrLn $ getQuestion oracle
+    putStrLn $ showOptions allowedOptions
+    userOption <- getValidResponse ("none" : allowedOptions)
+    case userOption of
+        "none" -> do
+            correctPrediction <- requestValidPrediction
+            opt <- requestResponse allowedOptions (getQuestion oracle) correctPrediction
+            return (insertPred opt (newOracle correctPrediction) oracle)
+        opt -> do
+            subOracle <- doPrediction (getBranch oracle opt)
+            return (insertPred opt subOracle oracle)
+  where
+    allowedOptions = optionsList $ getOptions oracle
 
-failedPrediction :: Oraculo -> IO Oraculo
+-- | Handles a failed prediction: requests correct answer, distinguishing question, and options
+failedPrediction :: Oracle -> IO Oracle
 failedPrediction oracle = do
     correctPrediction <- requestValidPrediction
     question <- requestQuestion correctPrediction
-    correctPredOpt  <- requestRespose [] question correctPrediction
-    oraclePredictionOpt   <- requestRespose [correctPredOpt] question (prediccion oracle)
-    return ( ramificar  [oraclePredictionOpt, correctPredOpt]
-                        [oracle, crearOraculo correctPrediction]
-                        question )
+    correctPredOpt <- requestResponse [] question correctPrediction
+    oraclePredictionOpt <- requestResponse [correctPredOpt] question (getPrediction oracle)
+    return (branch [oraclePredictionOpt, correctPredOpt]
+                   [oracle, newOracle correctPrediction]
+                   question)
 
-
-
-insertPred :: String -> Oraculo -> Oraculo -> Oraculo
-insertPred option prediction (Pregunta quest opt) = Pregunta quest (insert option prediction opt)
-insertPred _ _ _ = error "No he recibido una pregunta oraculo"
-
-predicctionFailed :: Oraculo -> IO Oraculo
-predicctionFailed oracle = do
-    prediccionCorrecta <- requestValidPrediction
-    question <- requestQuestion prediccionCorrecta
-    correctPredOpt  <- requestRespose [] question prediccionCorrecta
-    oraclePredictionOpt   <- requestRespose [correctPredOpt] question (prediccion oracle)
-    return ( ramificar  [oraclePredictionOpt, correctPredOpt]
-                        [oracle, crearOraculo prediccionCorrecta]
-                        question )
+-- | Insert/Update a branch under a Question node
+insertPred :: String -> Oracle -> Oracle -> Oracle
+insertPred option prediction (Question quest opts) = Question quest (Map.insert option prediction opts)
+insertPred _ _ _ = error "Predictions.insertPred: Not a Question node"
