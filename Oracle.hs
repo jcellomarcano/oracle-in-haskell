@@ -114,3 +114,21 @@ prettyPrintOracle = unlines . go "" ""
             go (indent ++ "    ") ("└── " ++ opt ++ " ➔ ") child
         processChildren ((opt, child):cs) =
             go (indent ++ "│   ") ("├── " ++ opt ++ " ➔ ") child ++ processChildren cs
+
+-- | Count the total number of Prediction nodes in the Oracle tree.
+countPredictions :: Oracle -> Int
+countPredictions (Prediction _) = 1
+countPredictions (Question _ opts) = sum [ countPredictions child | child <- Map.elems opts ]
+
+-- | Count the total number of Question nodes in the Oracle tree.
+countQuestions :: Oracle -> Int
+countQuestions (Prediction _) = 0
+countQuestions (Question _ opts) = 1 + sum [ countQuestions child | child <- Map.elems opts ]
+
+-- | Calculate the maximum depth of the Oracle tree.
+maxDepth :: Oracle -> Int
+maxDepth (Prediction _) = 0
+maxDepth (Question _ opts)
+    | Map.null opts = 1
+    | otherwise     = 1 + maximum [ maxDepth child | child <- Map.elems opts ]
+
