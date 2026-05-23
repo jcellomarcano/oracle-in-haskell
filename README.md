@@ -107,5 +107,5 @@ make clean
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## ⚡ Contributors
-- **Jesús Alejandro Marcano** (12-10359)
-- **María Fernanda Magallanes** (13-10787)
+- **Jesús Alejandro Marcano**
+- **María Fernanda Magallanes** 
